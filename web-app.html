@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basketball Trivia Challenge</title>
+  <link rel="icon" type="image/png" href="Images/Basketball.png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root{
+      --bg1:#1e3c72; --bg2:#2a5298; --bg3:#7e22ce;
+      --card: rgba(255,255,255,0.95);
+      --shadow: 0 20px 60px rgba(0,0,0,0.3);
+      --primary: #667eea;
+      --primary2:#764ba2;
+      --good:#11998e;
+      --good2:#38ef7d;
+      --bad:#eb3349;
+      --bad2:#f45c43;
+      --ink:#1e3c72;
+      --muted:#666;
+      --gold:#ffd700;
+    }
+
+    body{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+      position: relative;
+      overflow-x:hidden;
+    }
+
+    /* Subtle “court lines” background */
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background:
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,0.35) 0 160px, transparent 161px),
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,0.18) 0 260px, transparent 261px),
+        linear-gradient(to right, transparent 49.6%, rgba(255,255,255,0.25) 49.6%, rgba(255,255,255,0.25) 50.4%, transparent 50.4%),
+        linear-gradient(to bottom, rgba(255,255,255,0.12) 0 2px, transparent 2px 60px);
+      background-size: auto, auto, auto, 100% 62px;
+      background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    }
+
+    .container{
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      max-width: 900px;
+      width: 100%;
+      padding: 34px;
+      animation: fadeIn 0.5s ease-in;
+      position: relative;
+    }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform: translateY(-20px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    h1{
+      color: var(--ink);
+      text-align:center;
+      margin-bottom: 8px;
+      font-size: 2.4em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .basketball-icon{ text-align:center; font-size: 3em; margin-bottom: 12px; }
+    .subtitle{ text-align:center; color: var(--muted); margin-bottom: 22px; font-size: 1.05em; }
+
+    .hidden{ display:none; }
+
+    /* Start screen */
+    .start-grid{
+      display:grid;
+      gap:16px;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: start;
+      margin-top: 10px;
+    }
+    @media (max-width: 820px){
+      .start-grid{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: rgba(245, 247, 250, 0.9);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .panel h2{
+      color: var(--ink);
+      font-size: 1.25em;
+      margin-bottom: 12px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    .pill{
+      border: 2px solid rgba(102,126,234,0.35);
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      font-weight: 700;
+      color: #2b2b2b;
+    }
+    .pill:hover{ transform: translateY(-2px); border-color: rgba(102,126,234,0.7); }
+    .pill.active{
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 100%);
+      color:#fff;
+      border-color: transparent;
+    }
+
+    .start-meta{
+      display:grid;
+      gap:10px;
+      margin-top: 14px;
+      color: #333;
+    }
+    .meta-item{
+      display:flex;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.8);
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.05);
+      font-weight: 600;
+    }
+    .meta-item span{ color: var(--muted); font-weight: 700; }
+
+    .big-btn{
+      width: 100%;
+      margin-top: 14px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 100%);
+      color:#fff;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 18px;
+      font-size: 1.15em;
+      cursor:pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(102,126,234,0.25);
+    }
+    .big-btn:hover{ transform: translateY(-2px); box-shadow: 0 10px 28px rgba(102,126,234,0.32); }
+
+    /* Game HUD */
+    .hud{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:14px;
+      align-items:center;
+      margin-bottom: 14px;
+    }
+    .progress-wrap{ width:100%; }
+    .progress-bar{
+      width:100%;
+      height: 10px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 999px;
+      overflow:hidden;
+    }
+    .progress-fill{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary2) 100%);
+      transition: width 0.3s ease;
+    }
+    .dots{
+      display:flex;
+      gap:8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      transition: transform .2s ease, background .2s ease, opacity .2s ease;
+      opacity: 0.9;
+    }
+    .dot.current{ background: var(--gold); transform: scale(1.35); opacity: 1; }
+    .dot.done{ background: rgba(17,153,142,0.7); }
+    .quarter{
+      margin-top: 8px;
+      font-weight: 800;
+      color: #4b4b4b;
+      font-size: 0.95em;
+    }
+
+    .score-board{
+      display:flex;
+      gap:10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 100%);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .score-item{ text-align:center; min-width: 90px; }
+    .score-label{ font-size: 0.85em; opacity:0.92; margin-bottom: 4px; font-weight: 700; }
+    .score-value{ font-size: 1.6em; font-weight: 900; }
+
+    /* Timer */
+    .timer{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      justify-content:flex-end;
+      min-width: 180px;
+    }
+    .ring{
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      background:
+        conic-gradient(var(--gold) 0deg, rgba(255,255,255,0.25) 0deg);
+      display:grid;
+      place-items:center;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    .ring::after{
+      content:"";
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.2);
+      backdrop-filter: blur(6px);
+    }
+    .time-text{
+      position:absolute;
+      font-weight: 950;
+      color:#fff;
+      font-size: 1.05em;
+      transform: translateY(0.5px);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    .ring-wrap{ position: relative; width:46px; height:46px; display:grid; place-items:center; }
+    .timer-meta{
+      text-align:left;
+      color:#fff;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+    .timer-meta small{ display:block; opacity: 0.9; font-weight: 700; }
+
+    /* Question */
+    .question-container{ margin-top: 18px; }
+    .category-badge{
+      display:inline-block;
+      background: var(--gold);
+      color:#333;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.9em;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .question-number{ color: var(--bg3); font-weight: 900; margin-bottom: 8px; font-size: 1.05em; }
+    .question{ font-size: 1.25em; color:#222; margin-bottom: 18px; line-height: 1.45; font-weight: 650; }
+
+    .options{ display:grid; gap: 14px; }
+    .option{
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border: 3px solid transparent;
+      border-radius: 14px;
+      padding: 16px 16px;
+      cursor:pointer;
+      transition: all 0.25s ease;
+      font-size: 1.05em;
+      position: relative;
+      overflow:hidden;
+      font-weight: 700;
+    }
+    .option:hover{
+      transform: translateX(8px);
+      border-color: rgba(102,126,234,0.75);
+      box-shadow: 0 6px 16px rgba(102,126,234,0.25);
+    }
+    .option.correct{
+      background: linear-gradient(135deg, var(--good) 0%, var(--good2) 100%);
+      color:#fff;
+      border-color: rgba(17,153,142,0.8);
+      animation: pulse .45s ease;
+    }
+    .option.incorrect{
+      background: linear-gradient(135deg, var(--bad) 0%, var(--bad2) 100%);
+      color:#fff;
+      border-color: rgba(235,51,73,0.85);
+      animation: shake .45s ease;
+    }
+    .option.locked{ pointer-events:none; opacity: 0.98; }
+
+    @keyframes pulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+    @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+    .feedback{
+      background: rgba(240,244,255,0.95);
+      border-left: 5px solid var(--primary);
+      padding: 14px;
+      margin-top: 16px;
+      border-radius: 10px;
+      text-align:left;
+      color:#222;
+    }
+    .feedback-title{ font-weight: 950; color: var(--ink); margin-bottom: 8px; }
+
+    .button-container{
+      display:flex;
+      gap: 12px;
+      justify-content:center;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+    button{
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary2) 100%);
+      color:#fff;
+      border:none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-size: 1.05em;
+      cursor:pointer;
+      transition: all .22s ease;
+      font-weight: 900;
+      box-shadow: 0 6px 16px rgba(102,126,234,0.25);
+    }
+    button:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(102,126,234,0.32); }
+    button:disabled{ opacity:0.55; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    .ghost{
+      background: rgba(0,0,0,0.06);
+      color:#222;
+      border: 2px solid rgba(0,0,0,0.12);
+      box-shadow:none;
+    }
+    .ghost:hover{ transform: translateY(-2px); }
+
+    /* Results */
+    .result-container{ text-align:center; padding: 16px 10px; }
+    .result-title{ font-size: 2.3em; color: var(--ink); margin-bottom: 12px; font-weight: 950; }
+    .result-score{ font-size: 2.6em; color: var(--bg3); margin-bottom: 10px; font-weight: 950; }
+    .result-message{ font-size: 1.15em; color: var(--muted); margin-bottom: 16px; line-height: 1.5; font-weight: 700; }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    @media (max-width: 820px){
+      .stats{ grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat{
+      background: rgba(245,247,250,0.9);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .stat b{ display:block; font-size: 1.4em; color:#222; }
+    .stat span{ color: var(--muted); font-weight: 800; }
+
+    .review{
+      margin-top: 12px;
+      text-align:left;
+      background: rgba(245,247,250,0.9);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .review h3{ color: var(--ink); margin-bottom: 10px; font-weight: 950; }
+    details{
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    summary{
+      cursor:pointer;
+      font-weight: 900;
+      color:#222;
+      list-style:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .tag{
+      display:inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.85em;
+      font-weight: 900;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .tag.good{ background: rgba(17,153,142,0.14); color: #0b6f64; }
+    .tag.bad{ background: rgba(235,51,73,0.14); color: #9a1d2b; }
+    .subline{ margin-top: 8px; color:#333; font-weight: 700; }
+    .subline small{ color: var(--muted); font-weight: 800; display:block; margin-top: 6px; line-height: 1.35; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="basketball-icon">🏀</div>
+    <h1>Basketball Trivia Challenge</h1>
+    <p class="subtitle">Pick a difficulty. Beat the clock. Build a streak.</p>
+
+    <!-- START SCREEN -->
+    <div id="startScreen">
+      <div class="start-grid">
+        <div class="panel">
+          <h2>Choose Difficulty</h2>
+          <div class="row" id="difficultyRow">
+            <div class="pill active" data-diff="easy">Easy</div>
+            <div class="pill" data-diff="medium">Medium</div>
+            <div class="pill" data-diff="hard">Hard</div>
+          </div>
+
+          <div style="height:14px;"></div>
+
+          <h2>Quiz Length</h2>
+          <div class="row" id="lengthRow">
+            <div class="pill" data-len="10">10</div>
+            <div class="pill active" data-len="12">12</div>
+            <div class="pill" data-len="15">15</div>
+          </div>
+
+          <button class="big-btn" id="startBtn">Start Game</button>
+        </div>
+
+        <div class="panel">
+          <h2>Game Rules</h2>
+          <div class="start-meta">
+            <div class="meta-item"><div>Time per question</div><span id="metaTime">20s</span></div>
+            <div class="meta-item"><div>Points per correct</div><span id="metaPoints">10</span></div>
+            <div class="meta-item"><div>Streak bonus (3+)</div><span id="metaBonus">+5</span></div>
+            <div class="meta-item"><div>Question pool</div><span id="metaPool">40</span></div>
+            <div class="meta-item"><div>High score</div><span id="metaHigh">—</span></div>
+          </div>
+
+          <div style="margin-top:14px; color:#333; font-weight:750; line-height:1.45;">
+            Tip: Get <b>3 correct in a row</b> to trigger streak bonus on every correct answer after that — as long as you keep the streak alive.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="hidden">
+      <div class="hud">
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+          <div class="dots" id="dotsRow"></div>
+          <div class="quarter" id="quarterText">1st Quarter</div>
+        </div>
+
+        <div class="timer">
+          <div class="score-board" style="padding:10px 12px;">
+            <div class="score-item">
+              <div class="score-label">Q</div>
+              <div class="score-value" id="questionCounter">1/12</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Score</div>
+              <div class="score-value" id="scoreDisplay">0</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Streak</div>
+              <div class="score-value" id="streakDisplay">0</div>
+            </div>
+
+            <div class="score-item" style="min-width:140px;">
+              <div class="score-label">Timer</div>
+              <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                <div class="ring-wrap">
+                  <div class="ring" id="timerRing"></div>
+                  <div class="time-text" id="timeText">20</div>
+                </div>
+                <div class="timer-meta">
+                  <div id="diffLabel">Easy</div>
+                  <small id="pointsLabel">+10 correct • +5 streak</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-container">
+        <div class="category-badge" id="categoryBadge">NBA History</div>
+        <div class="question-number" id="questionNumber">Question 1</div>
+        <div class="question" id="questionText"></div>
+        <div class="options" id="optionsContainer"></div>
+
+        <div class="feedback hidden" id="feedbackBox">
+          <div class="feedback-title">Did you know?</div>
+          <div id="feedbackText"></div>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button id="nextButton" disabled>Next</button>
+        <button class="ghost" id="quitButton" type="button">Quit</button>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-container">
+        <div class="result-title">🏆 Game Complete! 🏆</div>
+        <div class="result-score" id="finalScore"></div>
+        <div class="result-message" id="resultMessage"></div>
+
+        <div class="stats">
+          <div class="stat"><b id="statCorrect">0</b><span>Correct</span></div>
+          <div class="stat"><b id="statWrong">0</b><span>Wrong / Timeouts</span></div>
+          <div class="stat"><b id="statBestStreak">0</b><span>Best Streak</span></div>
+          <div class="stat"><b id="statHighScore">—</b><span>High Score</span></div>
+        </div>
+
+        <div class="button-container">
+          <button id="playAgainBtn">Play Again</button>
+          <button class="ghost" id="backToStartBtn">Change Settings</button>
+        </div>
+
+        <div class="review" id="reviewBox">
+          <h3>Review</h3>
+          <div id="reviewList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * QUESTION POOL (40)
+     ***********************/
+    const QUESTION_POOL = [
+      { category:"NBA History", question:"Who holds the record for the most points in a single NBA game?", options:["Michael Jordan (69)","Kobe Bryant (81)","Wilt Chamberlain (100)","Elgin Baylor (71)"], correct:2, explanation:"Wilt scored 100 on March 2, 1962—still the record." },
+      { category:"Rules", question:"How many players per team are on the floor in regulation?", options:["4","5","6","7"], correct:1, explanation:"Basketball is 5-on-5 in regulation." },
+      { category:"Legends", question:"Who won the most NBA championships as a player?", options:["Michael Jordan (6)","Bill Russell (11)","Kobe Bryant (5)","Tim Duncan (5)"], correct:1, explanation:"Bill Russell won 11 titles with the Celtics." },
+      { category:"Rules", question:"NBA shot clock length is…", options:["14 seconds","24 seconds","30 seconds","35 seconds"], correct:1, explanation:"NBA shot clock is 24 seconds (14 on some offensive rebounds)." },
+      { category:"NBA History", question:"First #1 overall pick straight out of high school?", options:["LeBron James","Kevin Garnett","Kwame Brown","Kobe Bryant"], correct:2, explanation:"Kwame Brown went #1 in 2001." },
+      { category:"Scoring & Stats", question:"NBA all-time leading scorer is…", options:["Kareem Abdul-Jabbar","Karl Malone","LeBron James","Michael Jordan"], correct:2, explanation:"LeBron passed Kareem in February 2023." },
+      { category:"Rules", question:"Dribbling with both hands at the same time is called…", options:["Traveling","Double dribble","Carrying","Palming"], correct:1, explanation:"That’s a double dribble violation." },
+      { category:"Records", question:"All-time NBA assists leader is…", options:["Magic Johnson","John Stockton","Jason Kidd","Steve Nash"], correct:1, explanation:"Stockton has the assists record (15,806)." },
+      { category:"Championships", question:"Which franchise has the most NBA titles historically?", options:["Lakers","Celtics","Bulls","Warriors"], correct:1, explanation:"Celtics have been at/near the top historically." },
+      { category:"Rules", question:"How many personal fouls to foul out in the NBA?", options:["5","6","7","8"], correct:1, explanation:"NBA foul-out is 6 personal fouls." },
+      { category:"Legends", question:"‘His Airness’ refers to…", options:["Scottie Pippen","Dennis Rodman","Michael Jordan","Kareem Abdul-Jabbar"], correct:2, explanation:"Michael Jordan’s famous nickname." },
+      { category:"Rules", question:"Regulation hoop height is…", options:["9 ft","10 ft","11 ft","12 ft"], correct:1, explanation:"The rim is 10 feet high." },
+      { category:"Three-Point Era", question:"Most made 3-pointers in NBA history (record-holder) is…", options:["Ray Allen","Reggie Miller","Stephen Curry","James Harden"], correct:2, explanation:"Curry holds the all-time made threes record." },
+      { category:"Awards", question:"Youngest NBA MVP ever was…", options:["LeBron James","Derrick Rose","Magic Johnson","Kevin Durant"], correct:1, explanation:"Derrick Rose won MVP at age 22 (2011)." },
+      { category:"Rules", question:"A free throw is worth…", options:["1 point","2 points","3 points","Depends"], correct:0, explanation:"Free throws are always 1 point each." },
+
+      { category:"Rules", question:"How long is an NBA game (regulation)?", options:["40 minutes","42 minutes","48 minutes","60 minutes"], correct:2, explanation:"NBA regulation is 48 minutes (4 x 12)." },
+      { category:"Rules", question:"Backcourt violation time (bringing ball over half) in NBA is…", options:["8 seconds","10 seconds","12 seconds","24 seconds"], correct:0, explanation:"NBA uses an 8-second backcourt count." },
+      { category:"Rules", question:"Goaltending is called when a player…", options:["Touches ball on rim cylinder on its way down","Steps out of bounds","Double dribbles","Carries ball"], correct:0, explanation:"Interfering with a descending shot in the cylinder is goaltending." },
+      { category:"Rules", question:"A made shot from beyond the arc is worth…", options:["2","3","4","5"], correct:1, explanation:"Beyond the 3-point line is 3 points." },
+      { category:"Rules", question:"In NBA, a team enters the bonus after how many team fouls in a quarter?", options:["4","5","6","7"], correct:1, explanation:"Team foul #5 puts opponents in the penalty (2 FTs). (Overtime differs.)" },
+      { category:"Gameplay", question:"A ‘pick-and-roll’ is a play involving…", options:["Two defenders switching","A screen then rolling to the basket","A fastbreak dunk","A zone defense"], correct:1, explanation:"Screen + roll is a pick-and-roll." },
+      { category:"Records", question:"Most rebounds in NBA history (player) is…", options:["Shaq","Tim Duncan","Wilt Chamberlain","Bill Russell"], correct:2, explanation:"Wilt is often credited with the all-time rebounds record in historical lists." },
+      { category:"Legends", question:"Which player is famous for the ‘Skyhook’?", options:["Kareem Abdul-Jabbar","Hakeem Olajuwon","Dirk Nowitzki","Larry Bird"], correct:0, explanation:"Kareem’s skyhook is iconic." },
+      { category:"NBA History", question:"The NBA was founded in…", options:["1936","1946","1956","1966"], correct:1, explanation:"The league began as the BAA in 1946 (later became NBA)." },
+      { category:"NBA History", question:"The NBA 3-point line was introduced in…", options:["1969","1979","1989","1999"], correct:1, explanation:"NBA adopted the 3-point line in 1979–80." },
+      { category:"Rules", question:"A charge is called when…", options:["Defender is set and offensive player runs into them","Defender hits shooter’s arm","Ball is kicked","Player travels"], correct:0, explanation:"If the defender establishes legal guarding position, it can be a charge." },
+      { category:"Rules", question:"A ‘travel’ is when a player…", options:["Takes too many steps without dribbling","Dribbles with both hands","Stays in paint 3 seconds","Double teams"], correct:0, explanation:"Traveling = illegal steps/pivot without dribble." },
+      { category:"Rules", question:"Defensive 3 seconds means a defender…", options:["Can’t stay in lane >3s without guarding","Can’t block shots 3 times","Can’t foul 3 times","Can’t trap"], correct:0, explanation:"NBA defensive 3-second violation is about the lane." },
+      { category:"Gameplay", question:"A ‘triple-double’ is…", options:["3 dunks in a row","10+ points, rebounds, assists","10+ in three stat categories","3 pointers + 3 steals"], correct:2, explanation:"Triple-double = 10+ in three categories (points/reb/ast etc.)." },
+      { category:"Gameplay", question:"An ‘and-one’ means…", options:["Made basket + foul + free throw","A 3-pointer","A steal","A timeout"], correct:0, explanation:"Score while fouled, plus a FT." },
+      { category:"Records", question:"Most points in an NBA season (single season leader) often cited is…", options:["Michael Jordan","Wilt Chamberlain","James Harden","Kobe Bryant"], correct:1, explanation:"Wilt’s scoring seasons are historically highest." },
+
+      { category:"Legends", question:"Which team did Michael Jordan play for most of his career?", options:["Lakers","Celtics","Bulls","Knicks"], correct:2, explanation:"Jordan is most associated with the Chicago Bulls." },
+      { category:"NBA History", question:"Which conference are the Utah Jazz in?", options:["Eastern","Western","Central","Atlantic"], correct:1, explanation:"Utah Jazz are in the Western Conference." },
+      { category:"Rules", question:"A technical foul is usually for…", options:["Unsportsmanlike conduct","Traveling","Shot clock violation","Out of bounds"], correct:0, explanation:"Technical fouls are for conduct, not standard play violations." },
+      { category:"Rules", question:"If the ball hits the backboard and then goes through, it counts as…", options:["No basket","2 or 3 depending on shot","Goaltending automatically","Technical foul"], correct:1, explanation:"Backboard is part of the court equipment; the shot can be legal." },
+      { category:"Gameplay", question:"A ‘fast break’ is…", options:["Half-court offense","Quick transition offense after a stop","A defensive switch","A set play"], correct:1, explanation:"Fast break = quick transition scoring chance." },
+      { category:"Gameplay", question:"A ‘box out’ is done to…", options:["Set a screen","Prevent a rebound","Stop a fast break","Draw a foul"], correct:1, explanation:"Boxing out positions for rebounding." },
+      { category:"Rules", question:"Over-and-back is another name for…", options:["Goaltending","Backcourt violation","Double dribble","Flagrant foul"], correct:1, explanation:"Crossing half-court then returning to backcourt." },
+      { category:"NBA History", question:"Kobe Bryant spent his entire career with the…", options:["Bulls","Lakers","Heat","Spurs"], correct:1, explanation:"Kobe played 20 seasons with the Lakers." },
+      { category:"Legends", question:"‘The Process’ is strongly associated with which franchise era?", options:["Knicks","76ers","Suns","Bucks"], correct:1, explanation:"Philadelphia 76ers rebuild was nicknamed ‘The Process’." },
+      { category:"Rules", question:"If the offense stays in the paint too long, it’s called…", options:["Backcourt","Three seconds","Goaltending","Palming"], correct:1, explanation:"Offensive 3-second violation in the lane." },
+      { category:"Gameplay", question:"A ‘putback’ is…", options:["A rebound + immediate score","A half-court shot","A step-back three","A steal then layup"], correct:0, explanation:"Putback = scoring right after an offensive rebound." },
+      { category:"Awards", question:"NBA Finals MVP is awarded for performance in…", options:["Regular season","Conference finals","NBA Finals","All-Star game"], correct:2, explanation:"Finals MVP is for the NBA Finals series." },
+      { category:"Rules", question:"A flagrant foul is generally a foul with…", options:["No contact","Excessive/unnecessary contact","Only on threes","Only on charges"], correct:1, explanation:"Flagrants involve excessive/unnecessary contact." },
+      { category:"Gameplay", question:"A ‘corner three’ is taken from…", options:["Top of key","Near half court","The corner behind 3pt line","Free throw line"], correct:2, explanation:"Corner three is from the corner beyond the arc." },
+      { category:"Records", question:"All-time steals leader (commonly cited) is…", options:["Allen Iverson","John Stockton","Michael Jordan","Chris Paul"], correct:1, explanation:"Stockton is widely listed as all-time steals leader." }
+    ];
+
+    /***********************
+     * DIFFICULTY SETTINGS
+     ***********************/
+    const DIFFS = {
+      easy:   { label:"Easy",   time:20, points:10, streakBonus:5 },
+      medium: { label:"Medium", time:15, points:15, streakBonus:7 },
+      hard:   { label:"Hard",   time:10, points:20, streakBonus:10 }
+    };
+
+    /***********************
+     * STATE
+     ***********************/
+    let difficulty = "easy";
+    let quizLength = 12;
+
+    let questions = [];
+    let currentIndex = 0;
+
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+
+    let answered = false;
+    let selectedIndex = null;
+    let timerId = null;
+    let timeLeft = 0;
+
+    // For review / stats
+    let history = []; // {q, selected, correct, timedOut}
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    /***********************
+     * HELPERS
+     ***********************/
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function getHighKey(){
+      return `bb_trivia_high_${difficulty}_${quizLength}`;
+    }
+    function getHighScore(){
+      return Number(localStorage.getItem(getHighKey()) || 0);
+    }
+    function setHighScore(val){
+      localStorage.setItem(getHighKey(), String(val));
+    }
+
+    function quarterLabel(i, total){
+      // Split into 4 quarters-ish
+      const q = Math.ceil(((i+1)/total)*4);
+      if(q<=1) return "1st Quarter";
+      if(q===2) return "2nd Quarter";
+      if(q===3) return "3rd Quarter";
+      return "4th Quarter";
+    }
+
+    /***********************
+     * UI: START SCREEN
+     ***********************/
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen  = document.getElementById("gameScreen");
+    const resultScreen= document.getElementById("resultScreen");
+
+    const diffRow = document.getElementById("difficultyRow");
+    const lenRow  = document.getElementById("lengthRow");
+
+    const metaTime = document.getElementById("metaTime");
+    const metaPoints = document.getElementById("metaPoints");
+    const metaBonus = document.getElementById("metaBonus");
+    const metaPool = document.getElementById("metaPool");
+    const metaHigh = document.getElementById("metaHigh");
+
+    function refreshMeta(){
+      const d = DIFFS[difficulty];
+      metaTime.textContent = `${d.time}s`;
+      metaPoints.textContent = `${d.points}`;
+      metaBonus.textContent = `+${d.streakBonus}`;
+      metaPool.textContent = `${QUESTION_POOL.length}`;
+      metaHigh.textContent = `${getHighScore()}`;
+    }
+
+    diffRow.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      difficulty = pill.dataset.diff;
+      [...diffRow.querySelectorAll(".pill")].forEach(p=>p.classList.toggle("active", p===pill));
+      refreshMeta();
+    });
+
+    lenRow.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      quizLength = Number(pill.dataset.len);
+      [...lenRow.querySelectorAll(".pill")].forEach(p=>p.classList.toggle("active", p===pill));
+      refreshMeta();
+    });
+
+    document.getElementById("startBtn").addEventListener("click", ()=>{
+      startGame();
+    });
+
+    /***********************
+     * UI: GAME ELEMENTS
+     ***********************/
+    const categoryBadge = document.getElementById("categoryBadge");
+    const questionNumber= document.getElementById("questionNumber");
+    const questionText  = document.getElementById("questionText");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const feedbackBox   = document.getElementById("feedbackBox");
+    const feedbackText  = document.getElementById("feedbackText");
+
+    const progressBar   = document.getElementById("progressBar");
+    const dotsRow       = document.getElementById("dotsRow");
+    const quarterTextEl = document.getElementById("quarterText");
+
+    const questionCounter = document.getElementById("questionCounter");
+    const scoreDisplay  = document.getElementById("scoreDisplay");
+    const streakDisplay = document.getElementById("streakDisplay");
+
+    const nextButton    = document.getElementById("nextButton");
+    const quitButton    = document.getElementById("quitButton");
+
+    const timerRing     = document.getElementById("timerRing");
+    const timeTextEl    = document.getElementById("timeText");
+    const diffLabel     = document.getElementById("diffLabel");
+    const pointsLabel   = document.getElementById("pointsLabel");
+
+    nextButton.addEventListener("click", ()=>{
+      if(currentIndex < questions.length - 1) {
+        currentIndex++;
+        displayQuestion();
+      } else {
+        showResults();
+      }
+    });
+
+    quitButton.addEventListener("click", ()=>{
+      stopTimer();
+      showStartScreen();
+    });
+
+    /***********************
+     * GAME FLOW
+     ***********************/
+    function startGame(){
+      // Build randomized quiz from pool (copy + shuffle + slice)
+      questions = shuffle(QUESTION_POOL).slice(0, quizLength);
+
+      // Reset state
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      bestStreak = 0;
+      answered = false;
+      selectedIndex = null;
+      history = [];
+      correctCount = 0;
+      wrongCount = 0;
+
+      // Build dots UI
+      buildDots();
+
+      // Show game screen
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      // Labels
+      const d = DIFFS[difficulty];
+      diffLabel.textContent = d.label;
+      pointsLabel.textContent = `+${d.points} correct • +${d.streakBonus} streak`;
+
+      displayQuestion();
+      updateScoreboard();
+      refreshMeta();
+    }
+
+    function buildDots(){
+      dotsRow.innerHTML = "";
+      for(let i=0;i<quizLength;i++){
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dotsRow.appendChild(dot);
+      }
+    }
+
+    function displayQuestion(){
+      stopTimer();
+
+      const q = questions[currentIndex];
+      answered = false;
+      selectedIndex = null;
+
+      // UI
+      categoryBadge.textContent = q.category;
+      questionNumber.textContent = `Question ${currentIndex + 1}`;
+      questionText.textContent = q.question;
+
+      feedbackBox.classList.add("hidden");
+      feedbackText.textContent = "";
+
+      // Options
+      optionsContainer.innerHTML = "";
+      q.options.forEach((opt, idx)=>{
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = opt;
+        div.addEventListener("click", ()=>selectAnswer(idx, false));
+        optionsContainer.appendChild(div);
+      });
+
+      // Buttons
+      nextButton.disabled = true;
+      nextButton.textContent = (currentIndex === questions.length - 1) ? "See Results" : "Next";
+
+      // Progress
+      updateProgressUI();
+
+      // Timer
+      startTimer();
+    }
+
+    function selectAnswer(idx, timedOut){
+      if(answered) return;
+      answered = true;
+      selectedIndex = idx;
+
+      stopTimer();
+
+      const q = questions[currentIndex];
+      const opts = [...document.querySelectorAll(".option")];
+
+      // Lock and reveal (small “drama”: show selection, then reveal correct)
+      opts.forEach(o=>o.classList.add("locked"));
+
+      const reveal = () => {
+        opts.forEach((el, i)=>{
+          if(i === q.correct) el.classList.add("correct");
+          if(i === idx && idx !== q.correct) el.classList.add("incorrect");
+        });
+      };
+
+      // If timeout, treat as wrong unless idx === correct (we pass -1 on timeout)
+      setTimeout(reveal, 220);
+
+      // Score logic
+      const d = DIFFS[difficulty];
+      let gotIt = (idx === q.correct);
+
+      if(timedOut) gotIt = false;
+
+      if(gotIt){
+        score += d.points;
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
+
+        if(streak >= 3){
+          score += d.streakBonus;
+        }
+        correctCount++;
+      } else {
+        streak = 0;
+        wrongCount++;
+      }
+
+      history.push({
+        q,
+        selected: timedOut ? -1 : idx,
+        correct: q.correct,
+        timedOut: !!timedOut
+      });
+
+      updateScoreboard();
+      showFeedback(q, gotIt, timedOut);
+
+      nextButton.disabled = false;
+
+      // Update dots for completed question
+      updateDots();
+    }
+
+    function showFeedback(q, gotIt, timedOut){
+      let header = "Did you know?";
+      let prefix = "";
+
+      if(timedOut){
+        prefix = "⏱️ Time’s up. ";
+      } else if(gotIt){
+        prefix = "✅ Correct. ";
+      } else {
+        prefix = "❌ Not quite. ";
+      }
+
+      feedbackText.textContent = prefix + q.explanation;
+      feedbackBox.classList.remove("hidden");
+    }
+
+    /***********************
+     * TIMER
+     ***********************/
+    function startTimer(){
+      const d = DIFFS[difficulty];
+      timeLeft = d.time;
+
+      renderTimer(1); // full ring
+      timeTextEl.textContent = String(timeLeft);
+
+      timerId = setInterval(()=>{
+        timeLeft--;
+        timeTextEl.textContent = String(clamp(timeLeft, 0, 999));
+
+        const pct = clamp(timeLeft / d.time, 0, 1);
+        renderTimer(pct);
+
+        if(timeLeft <= 0){
+          stopTimer();
+          // timeout -> auto lock
+          selectAnswer(-1, true);
+        }
+      }, 1000);
+    }
+
+    function stopTimer(){
+      if(timerId){
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function renderTimer(pct){
+      // conic-gradient based ring
+      const deg = Math.round(pct * 360);
+      timerRing.style.background = `conic-gradient(var(--gold) ${deg}deg, rgba(255,255,255,0.25) ${deg}deg)`;
+    }
+
+    /***********************
+     * PROGRESS
+     ***********************/
+    function updateProgressUI(){
+      const total = questions.length;
+      const progress = ((currentIndex) / total) * 100;
+      progressBar.style.width = `${progress}%`;
+
+      questionCounter.textContent = `${currentIndex + 1}/${total}`;
+      quarterTextEl.textContent = quarterLabel(currentIndex, total);
+
+      updateDots();
+    }
+
+    function updateDots(){
+      const dots = [...dotsRow.querySelectorAll(".dot")];
+      dots.forEach((dot, i)=>{
+        dot.classList.toggle("current", i === currentIndex);
+        dot.classList.toggle("done", i < currentIndex);
+      });
+
+      // When question is answered, mark it done immediately (so current becomes done after answer)
+      if(answered && dots[currentIndex]){
+        dots[currentIndex].classList.add("done");
+      }
+
+      const total = questions.length;
+      const progress = ((currentIndex + 1) / total) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    function updateScoreboard(){
+      scoreDisplay.textContent = score;
+      streakDisplay.textContent = streak;
+      questionCounter.textContent = `${currentIndex + 1}/${questions.length}`;
+    }
+
+    /***********************
+     * RESULTS + REVIEW
+     ***********************/
+    const finalScoreEl = document.getElementById("finalScore");
+    const resultMessageEl = document.getElementById("resultMessage");
+    const reviewList = document.getElementById("reviewList");
+
+    const statCorrect = document.getElementById("statCorrect");
+    const statWrong = document.getElementById("statWrong");
+    const statBestStreak = document.getElementById("statBestStreak");
+    const statHighScore = document.getElementById("statHighScore");
+
+    document.getElementById("playAgainBtn").addEventListener("click", ()=>{
+      startGame();
+    });
+    document.getElementById("backToStartBtn").addEventListener("click", ()=>{
+      showStartScreen();
+    });
+
+    function showResults(){
+      stopTimer();
+
+      // High score save
+      const prevHigh = getHighScore();
+      if(score > prevHigh) setHighScore(score);
+
+      // Message (don’t do “max score” math — streak bonus makes it variable based on performance)
+      const total = questions.length;
+      const pct = Math.round((correctCount / total) * 100);
+
+      finalScoreEl.textContent = `${score} points`;
+      let msg = "";
+
+      if(pct === 100){
+        msg = `🌟 PERFECT QUIZ! 🌟<br><br>You went ${correctCount}/${total} and dominated the clock.`;
+      } else if(pct >= 80){
+        msg = `🏀 Elite run! 🏀<br><br>You went ${correctCount}/${total}. One more push and you’re perfect.`;
+      } else if(pct >= 60){
+        msg = `👏 Solid! 👏<br><br>${correctCount}/${total}. You’re building real hoop IQ.`;
+      } else if(pct >= 40){
+        msg = `📚 Good effort! 📚<br><br>${correctCount}/${total}. Run it back and aim for a streak.`;
+      } else {
+        msg = `🎯 Keep grinding! 🎯<br><br>${correctCount}/${total}. You’ll level up fast with a replay.`;
+      }
+
+      resultMessageEl.innerHTML = msg;
+
+      // Stats
+      statCorrect.textContent = correctCount;
+      statWrong.textContent = wrongCount;
+      statBestStreak.textContent = bestStreak;
+      statHighScore.textContent = getHighScore();
+
+      // Review
+      renderReview();
+
+      // Show results screen
+      gameScreen.classList.add("hidden");
+      startScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      refreshMeta();
+    }
+
+    function renderReview(){
+      reviewList.innerHTML = "";
+
+      history.forEach((h, idx)=>{
+        const gotIt = (h.selected === h.correct);
+        const tagClass = gotIt ? "good" : "bad";
+        const tagText = gotIt ? "Correct" : (h.timedOut ? "Timeout" : "Wrong");
+
+        const selectedText = (h.selected === -1) ? "— (timed out)" : h.q.options[h.selected];
+        const correctText = h.q.options[h.correct];
+
+        const d = document.createElement("details");
+        const s = document.createElement("summary");
+        s.innerHTML = `Q${idx+1}: ${h.q.question} <span class="tag ${tagClass}">${tagText}</span>`;
+        d.appendChild(s);
+
+        const info = document.createElement("div");
+        info.className = "subline";
+        info.innerHTML = `
+          Your answer: <b>${escapeHtml(selectedText)}</b><br>
+          Correct: <b>${escapeHtml(correctText)}</b>
+          <small>${escapeHtml(h.q.explanation)}</small>
+        `;
+        d.appendChild(info);
+
+        reviewList.appendChild(d);
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    /***********************
+     * NAV
+     ***********************/
+    function showStartScreen(){
+      stopTimer();
+      gameScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      startScreen.classList.remove("hidden");
+      refreshMeta();
+    }
+
+    /***********************
+     * INIT
+     ***********************/
+    // Default selections already set by HTML classes
+    refreshMeta();
+
+    // Keyboard shortcuts: 1-4 answers, Enter next
+    window.addEventListener("keydown", (e)=>{
+      if(gameScreen.classList.contains("hidden")) return;
+
+      const key = e.key;
+      if(["1","2","3","4"].includes(key)){
+        const idx = Number(key) - 1;
+        const q = questions[currentIndex];
+        if(q && idx < q.options.length) selectAnswer(idx, false);
+      }
+      if(key === "Enter" && !nextButton.disabled){
+        nextButton.click();
+      }
+    });
+  </script>
+</body>
+</html>
